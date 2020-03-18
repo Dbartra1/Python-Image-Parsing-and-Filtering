@@ -12,31 +12,41 @@ def get_file():
             if os.path.exists(image_path):                                                #Ensuring filepath to image is valid
                 break                                                                   #Break out of loop when successful
             else:
-                print("Invalid Valid Filename or Extension. Try Again.")                #Catch 2 - Loop back to beginning
+                print("\nInvalid Valid Filename or Extension. Try Again.")                #Catch 2 - Loop back to beginning
         else:
-            print("File or Directory not Found. Try Again.")                            #Catch 1 - Loop back to beginning
+            print("\nFile or Directory not Found. Try Again.")                            #Catch 1 - Loop back to beginning
     return image_path
 
 def conv_image(image_path):
     image = cv2.imread(image_path)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    print("here")                                                          #display image
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)                                                         #display image
     return image
 
+
 def get_parseImage(image):
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    cv2.imshow("gray image", gray_image)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    while True:
+        w, h = image.shape
+        choice = "y"
+        while True:
+            scale_percent = int(input("Enter a value between 1 and 200:  ")) # percent of original size
+            try:
+                scaleAtPercent = int(scale_percent) 
+                if scaleAtPercent <= 0: #ensuring value entered is > than 0
+                    print("Invalid Input, Try again")
+                    continue
+                elif scaleAtPercent > 200:
+                    continue
+                else:
+                    break
+            except ValueError: #Using try/except to catch errors
+                print("Invalid Input, Try again")
+        w = int(image.shape[1] * scale_percent / 100)
+        h = int(image.shape[0] * scale_percent / 100)
+        image = cv2.resize(image, (w, h), interpolation = cv2.INTER_AREA)
+        print(w , "x" , h)
+        break
 
-    print("Here")
-
-#temporary
-
-def main():
-    get_file()
-    image_path = get_file()
-    conv_image(image_path)
-    image = conv_image(image_path)
-    get_parseImage(image)
-
-if __name__ == "__main__":
-    main()
+    cv2.imshow("gray image", image)
+    cv2.waitKey(0)
+    return image
