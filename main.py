@@ -2,9 +2,15 @@
 import importing as imp
 
 def main():
-    image_path = imp.get_file()
-    image = imp.conv_image(image_path)
-    imp.get_parseImage(image)
+    while True:
+        image_path = imp.get_file()
+        image = imp.conv_image(image_path)
+        imp.get_parseImage(image)
+
+        result = input("Continue? (y/n): ")                                                    #Allowing for the program to run as many times as needed.
+        print()
+        if result.lower() != "y":
+            break
     print("\nCreated by: Dillon Bartram, Edward Aylott, Sorrel Paris, Taylor Dean")            #Credits
    
 
