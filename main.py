@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import importing as imp
+import parsing as parse
+import color_space as cs
 
 def main():
     while True:
         image_path = imp.get_file()
-        image = imp.conv_image(image_path)
-        imp.get_parseImage(image)
+        history = parse.saveFileLocation(image_path)
+        image = cs.modifyImageSize(image_path)
+        cs.modifyImageColor(image)
 
         result = input("Continue? (y/n): ")                                                    #Allowing for the program to run as many times as needed.
         print()
