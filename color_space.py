@@ -32,14 +32,15 @@ def modifyImageSize(image_path):
 def modifyImageColor(image):
     w, h, c = image.shape
 
-    red = int(input("Do you want red? enter 255 or 0 if no"))
-    blue = int(input("Do you want blue? enter 255 or 0 if no"))
-    green = int(input("Do you want green? enter 255 or 0 if no"))
+    blue = int(input("Filter perctange of Blue (0 to 255): "))
+    green = int(input("Filter perctange of Green (0 to 255): "))
+    red = int(input("Filter perctange of Red (0 to 255): "))
+
+    opacityPercent = float(input("Enter percentage of opacity (.001 to 1.0): "))
     
     redImage =  np.full((w, h, c), (blue, green, red), np.uint8)                            #the scale size must be known. the color also has to change
-    fusedImage = cv2.addWeighted(image, 1, redImage, .5, 0)
+    fusedImage = cv2.addWeighted(image, 1, redImage, opacityPercent, 0)
     
-
     cv2.imshow("default",  fusedImage)                                                    #Display image to screen with window named Gray Scale
     cv2.waitKey(0)
     cv2.destroyWindow("default")
