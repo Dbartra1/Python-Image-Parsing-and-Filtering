@@ -5,8 +5,10 @@ import os.path as path
 
 FILENAME = "savedLocation.csv"
 
+
 def saveFileLocation(image_path):
     savedLocations = []
+
     while True:
         if path.exists(FILENAME):
             with open (FILENAME, "a", newline="") as file:
@@ -17,5 +19,11 @@ def saveFileLocation(image_path):
         else:
             with open("savedLocation.csv", "wb") as file:
                 writer = csv.writer(file)
-                writer.writerow(savedLocations)
                 continue
+
+def saveUsrInput(inputs):
+    filename = FILENAME
+
+    with open (filename, "a", newline="") as file:
+        writer = csv.writer(file)
+        writer = writer.writerow(inputs)
