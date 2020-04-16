@@ -31,12 +31,38 @@ def modifyImageSize(image_path):
 
 def modifyImageColor(image):
     w, h, c = image.shape
+    inputs = []
 
-    blue = int(input("Filter perctange of Blue (0 to 255): "))
-    green = int(input("Filter perctange of Green (0 to 255): "))
-    red = int(input("Filter perctange of Red (0 to 255): "))
+    while True:
+        try:
+            blue = int(input("Filter perctange of Blue (0 to 255): "))
+            colorBlue = str(blue)
+            blueWords = "Blue = "
+            combinedWordBlue = blueWords + colorBlue
+            inputs.append(combinedWordBlue)
+            green = int(input("Filter perctange of Green (0 to 255): "))
+            colorGreen = str(green)
+            greenWords = "Green = "
+            combinedWordGreen = greenWords + colorGreen
+            inputs.append(combinedWordGreen)
+            red = int(input("Filter perctange of Red (0 to 255): "))
+            colorRed = str(red)
+            redWords = "Red = "
+            combinedWordRed = redWords + colorRed
+            inputs.append(combinedWordRed)  
+            if blue < 0 and green < 0 and red < 0 and blue > 255 and green > 255 and red > 255:
+                print("Invalid Input, Try again\n")
+                continue
+            else:
+                break
+        except ValueError:
+            print("Invalid Input, Try again\n")
 
     opacityPercent = float(input("Enter percentage of opacity (.001 to 1.0): "))
+    opacity = str(opacityPercent)
+    opacityWords = "Opacity = "
+    combinedOpacity = opacityWords + opacity
+    inputs.append(combinedOpacity)  
     
     redImage =  np.full((w, h, c), (blue, green, red), np.uint8)                            #the scale size must be known. the color also has to change
     fusedImage = cv2.addWeighted(image, 1, redImage, opacityPercent, 0)
@@ -44,4 +70,5 @@ def modifyImageColor(image):
     cv2.imshow("default",  fusedImage)                                                    #Display image to screen with window named Gray Scale
     cv2.waitKey(0)
     cv2.destroyWindow("default")
-    print(np.shape(image))
+
+    return inputs
