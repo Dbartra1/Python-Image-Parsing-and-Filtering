@@ -8,11 +8,12 @@ def main():
         image_path = imp.get_file()
         history = parse.saveFileLocation(image_path)
         image = cs.modifyImageSize(image_path)
-        cs.modifyImageColor(image)
+        inputs = cs.modifyImageColor(image)
+        parse.saveUsrInput(inputs)
 
         result = input("Continue? (y/n): ")                                                    #Allowing for the program to run as many times as needed.
         print()
-        if result.lower() != "y":
+        if result.lower () != "y":
             break
     print("\nCreated by: Dillon Bartram, Edward Aylott, Sorrel Paris, Taylor Dean")            #Credits
    
