@@ -3,21 +3,21 @@ import importing as imp
 import csv
 import os.path as path
 
-FILENAME = "savedLocation.csv"
+FILENAME = "history.csv"
 
 
 def saveFileLocation(image_path):
-    savedLocations = []
+    history = []
 
     while True:
         if path.exists(FILENAME):
             with open (FILENAME, "a", newline="") as file:
                 writer = csv.writer(file)
-                savedLocations.append(image_path)
-                writer.writerow(savedLocations)
+                history.append(image_path)
+                writer.writerow(history)
                 break
         else:
-            with open("savedLocation.csv", "wb") as file:
+            with open("history.csv", "wb") as file:
                 writer = csv.writer(file)
                 continue
 
