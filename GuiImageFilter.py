@@ -5,6 +5,7 @@ import json
 from tkinter import Toplevel
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import asksaveasfile
+from tkinter import messagebox
 from tkinter import Label
 import cv2
 import numpy as np
@@ -37,7 +38,7 @@ class GetFileLocation(tk.Frame):
             IMAGE_PATH = file.name
         
         except AttributeError:
-            print("No File selected")
+            messagebox.showerror("Error", "No File Selected")
 
 class ResizeImage(tk.Frame):
 
@@ -67,14 +68,17 @@ class ResizeImage(tk.Frame):
         global CHANNELS
         global iScale_percent
 
-        SCALE_PERCENT = self.eImageSize.get()
-        iScale_percent = int(SCALE_PERCENT)
+        try:
+            SCALE_PERCENT = self.eImageSize.get()
+            iScale_percent = int(SCALE_PERCENT)
 
-        IMAGE = cv2.imread(IMAGE_PATH) 
-        WIDTH, HEIGHT, CHANNELS = IMAGE.shape
-        WIDTH = int(IMAGE.shape[1] * iScale_percent / 100)
-        HEIGHT = int(IMAGE.shape[0] * iScale_percent / 100)
-        IMAGE = cv2.resize(IMAGE, (WIDTH, HEIGHT), interpolation = cv2.INTER_AREA)
+            IMAGE = cv2.imread(IMAGE_PATH) 
+            WIDTH, HEIGHT, CHANNELS = IMAGE.shape
+            WIDTH = int(IMAGE.shape[1] * iScale_percent / 100)
+            HEIGHT = int(IMAGE.shape[0] * iScale_percent / 100)
+            IMAGE = cv2.resize(IMAGE, (WIDTH, HEIGHT), interpolation = cv2.INTER_AREA)
+        except (NameError, ValueError):
+            messagebox.showerror("Error", "Either no image is selected or invalid input has been entered.")
 
 class FilterImage(tk.Frame):
 
@@ -121,21 +125,25 @@ class FilterImage(tk.Frame):
         global fOpacity
 
         #Gui produces strings, taking the string values and making them correct variable types
-        RED = self.eRedRGB.get()
-        iRed = int(RED)
-        GREEN = self.eGreenRGB.get()
-        iGreen = int(GREEN)
-        BLUE = self.eBlueRGB.get()
-        iBlue = int(BLUE)
-        OPACITY = self.eOpacity.get()
-        fOpacity = float(OPACITY)
+        try:
+            RED = self.eRedRGB.get()
+            iRed = int(RED)
+            GREEN = self.eGreenRGB.get()
+            iGreen = int(GREEN)
+            BLUE = self.eBlueRGB.get()
+            iBlue = int(BLUE)
+            OPACITY = self.eOpacity.get()
+            fOpacity = float(OPACITY)
 
         #Buidlng and Adding the filter
-        filteredImage =  np.full((HEIGHT, WIDTH, CHANNELS), (iBlue, iGreen, iRed), np.uint8)           
-        FINAL_IMAGE = cv2.addWeighted(IMAGE, 1, filteredImage, fOpacity, 0)
 
-        #For Comparing the Images
-        SIDE_BY_SIDE = np.concatenate((FINAL_IMAGE, IMAGE), axis = 1)
+            filteredImage =  np.full((HEIGHT, WIDTH, CHANNELS), (iBlue, iGreen, iRed), np.uint8)           
+            FINAL_IMAGE = cv2.addWeighted(IMAGE, 1, filteredImage, fOpacity, 0)
+
+            #For Comparing the Images
+            SIDE_BY_SIDE = np.concatenate((FINAL_IMAGE, IMAGE), axis = 1)
+        except (NameError, ValueError):
+            messagebox.showerror("Error", "Please ensure all steps were followed and try again.")
 
 class ShowFilteredImage(tk.Frame):
     
@@ -156,16 +164,22 @@ class ShowFilteredImage(tk.Frame):
         self.QUIT.pack(side="left")
 
     def onlyFilteredImage(self):
-        filteredImageWinName = "Filtered Image"
-        cv2.imshow(filteredImageWinName,  FINAL_IMAGE)                                                       
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        try:
+            filteredImageWinName = "Filtered Image"
+            cv2.imshow(filteredImageWinName,  FINAL_IMAGE)                                                       
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        except NameError:
+            messagebox.showerror("Error", "Looks like you skipped a step?")
     
     def comparedImages(self):
-        comparisonImageWinName = "Comparison"
-        cv2.imshow(comparisonImageWinName, SIDE_BY_SIDE)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        try:
+            comparisonImageWinName = "Comparison"
+            cv2.imshow(comparisonImageWinName, SIDE_BY_SIDE)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        except NameError:
+            messagebox.showerror("Error", "Looks like you skipped a step?")
 
 class SaveFilteredImage(tk.Frame):
 
@@ -184,15 +198,18 @@ class SaveFilteredImage(tk.Frame):
     def saveFilteredImage(self):
         files = [('jpg files', '*.jpg'),  
              ('png files', '*.png'), 
-             ('jpeg files', '*.jpeg')] 
-        file = asksaveasfile(filetypes = files, defaultextension = files)
-        path = file.name
+             ('jpeg files', '*.jpeg')]
+        try:
+            file = asksaveasfile(filetypes = files, defaultextension = files)
+            path = file.name
 
-        cv2.imwrite(path, FINAL_IMAGE)
-        cv2.waitKey(0)
+            cv2.imwrite(path, FINAL_IMAGE)
+            cv2.waitKey(0)
 
-        saving.extend((IMAGE_PATH, iScale_percent, iRed, iGreen, iBlue, fOpacity, path))
-        SUE.saveFileLocation()
+            saving.extend((IMAGE_PATH, iScale_percent, iRed, iGreen, iBlue, fOpacity, path))
+            SUE.saveFileLocation()
+        except(AttributeError, NameError):
+            messagebox.showerror("Error", "Failed to save the image. Please try again.")
 
 class InstructionsForUser(tk.Frame):
 
@@ -209,14 +226,15 @@ class InstructionsForUser(tk.Frame):
         self.QUIT.pack(side="left")
 
     def instructions(self):
-        instructionsString = ("To run the filtering program, note all options must be done order. " +
-                              "The order is signified through numerical notations of 1 – 5. \nFirst, an image must be selected. " +
-                              "We then require the image to be resized. Once resized the filter parameters must be entered. \n" +
-                              "At this time the filtered image can then be opened. " +
-                              "After all this is done, the resizing of the image can be changed, and filters modified. \nAll within the same open image. "+ 
-                              "The interface will remain open until the main Quit option is selected.")
-        instructionsLabel = Label(self, text= instructionsString)
-        instructionsLabel.pack()
+        self.destroy()
+        instructionsString = ("To run the filtering program, note all options must be done in order. \n\n" + 
+                              "The order is signified through numerical notations of 1 – 5. The steps are as follows:\n\n" +
+                              "1) An image must be selected. \n" + 
+                              "2) The image must be resized.\n3) Filter parameters must be entered. \n" +
+                              "4) The filtered image can now be opened.\n" + "5) The filtered image can now be saved.\n\n" +
+                              "NOTE: Step 5 can wait till after the desired image filter and size have been selected. Backtracking is possible. " + 
+                              "The interface will remain open until the main \"Quit\" option is selected.")
+        messagebox.showinfo("Instructions", instructionsString)
 
             
 class MainMenuApp(tk.Frame):
@@ -231,10 +249,10 @@ class MainMenuApp(tk.Frame):
         self.bImageCapture = tk.Button(self, text="View Instructions", command = self.instructions_for_user)
         self.bImageCapture.pack(side="top")
 
-        self.bImageCapture = tk.Button(self, text="[1] Select a Image", command = self.imagePathCapture)
+        self.bImageCapture = tk.Button(self, text="[1] Select an Image", command = self.imagePathCapture)
         self.bImageCapture.pack(side="top")
         
-        self.bResize = tk.Button(self, text="[2] Resize a Image", command = self.resizeImage)
+        self.bResize = tk.Button(self, text="[2] Resize the Image", command = self.resizeImage)
         self.bResize.pack(side="top")
         
         self.bfilter = tk.Button(self, text="[3] Enter Filter Paramters", command = self.filterImage)
