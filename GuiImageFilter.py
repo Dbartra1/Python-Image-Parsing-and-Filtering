@@ -1,17 +1,17 @@
+#!/usr/bin/env python3
 import tkinter as tk
 import os
 import json
 from tkinter import Toplevel
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import asksaveasfile
+from tkinter import Label
 import cv2
 import numpy as np
 
-RED = None
-GREEN = None
-BLUE = None
-OPACITY = None
-SCALE_PERCENT = None
+from datalayer import SaveUserEntries as SUE
+from datalayer import HISTORY as saving
+
 
 class GetFileLocation(tk.Frame):
 
@@ -65,6 +65,7 @@ class ResizeImage(tk.Frame):
         global WIDTH
         global HEIGHT
         global CHANNELS
+        global iScale_percent
 
         SCALE_PERCENT = self.eImageSize.get()
         iScale_percent = int(SCALE_PERCENT)
@@ -114,6 +115,10 @@ class FilterImage(tk.Frame):
         #Initializing global values
         global FINAL_IMAGE
         global SIDE_BY_SIDE
+        global iRed
+        global iGreen
+        global iBlue
+        global fOpacity
 
         #Gui produces strings, taking the string values and making them correct variable types
         RED = self.eRedRGB.get()
@@ -185,6 +190,34 @@ class SaveFilteredImage(tk.Frame):
 
         cv2.imwrite(path, FINAL_IMAGE)
         cv2.waitKey(0)
+
+        saving.extend((IMAGE_PATH, iScale_percent, iRed, iGreen, iBlue, fOpacity, path))
+        SUE.saveFileLocation()
+
+class InstructionsForUser(tk.Frame):
+
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)
+        self.pack()
+        self.createWidgets()
+
+    def createWidgets(self):
+        self.EditSize = tk.Button(self, text = "Instructions", fg="black", command=self.instructions)
+        self.EditSize.pack(side="left")
+
+        self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
+        self.QUIT.pack(side="left")
+
+    def instructions(self):
+        instructionsString = ("To run the filtering program, note all options must be done order. " +
+                              "The order is signified through numerical notations of 1 – 5. \nFirst, an image must be selected. " +
+                              "We then require the image to be resized. Once resized the filter parameters must be entered. \n" +
+                              "At this time the filtered image can then be opened. " +
+                              "After all this is done, the resizing of the image can be changed, and filters modified. \nAll within the same open image. "+ 
+                              "The interface will remain open until the main Quit option is selected.")
+        instructionsLabel = Label(self, text= instructionsString)
+        instructionsLabel.pack()
+
             
 class MainMenuApp(tk.Frame):
 
@@ -194,6 +227,10 @@ class MainMenuApp(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
+
+        self.bImageCapture = tk.Button(self, text="View Instructions", command = self.instructions_for_user)
+        self.bImageCapture.pack(side="top")
+
         self.bImageCapture = tk.Button(self, text="[1] Select a Image", command = self.imagePathCapture)
         self.bImageCapture.pack(side="top")
         
@@ -209,12 +246,6 @@ class MainMenuApp(tk.Frame):
         self.bSave = tk.Button(self, text="[5] Save Filtered Image", command = self.saveFile)
         self.bSave.pack(side="top")
 
-        #self.bHistory = tk.Button(self, text="History", command = self.history)
-        #self.bHistory["text"] = "History"
-        #self.bHistory["command"] =self.bHistory
-        #self.bHistory.pack(side="top")
-
-        #quit
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command= self.master.destroy)
         self.QUIT.pack(side="bottom")
 
@@ -242,6 +273,11 @@ class MainMenuApp(tk.Frame):
         print("Saving...")
         root6 = tk.Toplevel()
         buildApp5 = SaveFilteredImage(master = root6)
+
+    def instructions_for_user(self):
+        print("Loading...")
+        root7 = tk.Toplevel()
+        buildApp6 = InstructionsForUser(master = root7)
 
 root = tk.Tk()
 app = MainMenuApp(master=root)
