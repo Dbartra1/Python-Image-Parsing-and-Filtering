@@ -8,8 +8,10 @@ HISTORY = []
 
 class SaveUserEntries():
 
+
     def saveFileLocation():
         history = HISTORY
+        header = ["File Path", "Resize Paramter", "Red Filter Level", "Green Filter Level", "Blue Filter Level", "Opacity Scale", "Saved Image Path"]
 
         while True:
             if path.exists(FILENAME):
@@ -18,6 +20,7 @@ class SaveUserEntries():
                     writer.writerow(history)
                     break
             else:
-                with open("history.csv", "wb") as file:
-                    writer = csv.writer(file)
+                with open('history.csv', 'w', newline='') as outcsv:
+                    writer = csv.writer(outcsv)
+                    writer.writerow(header)
                     continue
