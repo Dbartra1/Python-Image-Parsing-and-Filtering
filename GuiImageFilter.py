@@ -223,7 +223,7 @@ class SaveFilteredImage(tk.Frame):
             SUE.saveFileLocation()
             self.withdraw()
         except(AttributeError, NameError):
-            messagebox.showerror("Error", "Failed to save the image. Please try again.")
+            messagebox.showerror("Error", "Failed to save image. Please try again.")
 
 class InstructionsForUser(tk.Frame):
 
