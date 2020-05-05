@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
-import tkinter as tk
+import cv2
+import numpy as np
+import csv
 import os
 import json
+import tkinter as tk
+import tkinter.ttk as ttk
+
 from tkinter import Toplevel
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import asksaveasfile
 from tkinter import messagebox
-from tkinter import Label
-import cv2
-import numpy as np
+from tkinter import Label, Text, Frame, Scrollbar
+from tkinter import END, TOP, HORIZONTAL, VERTICAL, BOTTOM, RIGHT, Y, X, W, NO
+
 
 from datalayer import SaveUserEntries as SUE
 from datalayer import HISTORY as saving
+from datalayer import FILENAME as fName
 
 
 class GetFileLocation(tk.Frame):
@@ -20,10 +26,11 @@ class GetFileLocation(tk.Frame):
         tk.Frame.__init__(self, master)
         self.pack()
         self.createWidgets()
+        self.withdraw = master.withdraw
 
     def createWidgets(self):
-        self.EditSize = tk.Button(self, text = "Get Image Path", fg="black", command=self.getImagePath)
-        self.EditSize.pack(side="left")
+        self.bGetImage = tk.Button(self, text = "Get Image Path", fg="black", command=self.getImagePath)
+        self.bGetImage.pack(side="left")
 
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
         self.QUIT.pack(side="left")
@@ -36,6 +43,7 @@ class GetFileLocation(tk.Frame):
         try:
             file = askopenfile(mode ='r', filetypes = files)
             IMAGE_PATH = file.name
+            self.withdraw()
         
         except AttributeError:
             messagebox.showerror("Error", "No File Selected")
@@ -71,13 +79,15 @@ class ResizeImage(tk.Frame):
         try:
             SCALE_PERCENT = self.eImageSize.get()
             iScale_percent = int(SCALE_PERCENT)
-
-            IMAGE = cv2.imread(IMAGE_PATH) 
-            WIDTH, HEIGHT, CHANNELS = IMAGE.shape
-            WIDTH = int(IMAGE.shape[1] * iScale_percent / 100)
-            HEIGHT = int(IMAGE.shape[0] * iScale_percent / 100)
-            IMAGE = cv2.resize(IMAGE, (WIDTH, HEIGHT), interpolation = cv2.INTER_AREA)
-        except (NameError, ValueError):
+            if iScale_percent <= 200:
+                IMAGE = cv2.imread(IMAGE_PATH) 
+                WIDTH, HEIGHT, CHANNELS = IMAGE.shape
+                WIDTH = int(IMAGE.shape[1] * iScale_percent / 100)
+                HEIGHT = int(IMAGE.shape[0] * iScale_percent / 100)
+                IMAGE = cv2.resize(IMAGE, (WIDTH, HEIGHT), interpolation = cv2.INTER_AREA)
+            else:
+                raise Exception
+        except (NameError, ValueError, Exception):
             messagebox.showerror("Error", "Either no image is selected or invalid input has been entered.")
 
 class FilterImage(tk.Frame):
@@ -109,8 +119,8 @@ class FilterImage(tk.Frame):
         self.eOpacity.pack(side="left")
 
 
-        self.EditSize = tk.Button(self, text = "Submit", fg="green", command=self.setRGBValues)
-        self.EditSize.pack(side="left")
+        self.bSubmit = tk.Button(self, text = "Submit", fg="green", command=self.setRGBValues)
+        self.bSubmit.pack(side="left")
 
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
         self.QUIT.pack(side="left")
@@ -135,14 +145,16 @@ class FilterImage(tk.Frame):
             OPACITY = self.eOpacity.get()
             fOpacity = float(OPACITY)
 
-        #Buidlng and Adding the filter
+            if iRed >= 0 and iGreen >= 0 and iBlue >= 0 and fOpacity >= .001 and iRed <= 255 and iGreen <= 255 and iBlue <= 255 and fOpacity <= 1.0:
+                #Buidlng and Adding the filter
+                filteredImage =  np.full((HEIGHT, WIDTH, CHANNELS), (iBlue, iGreen, iRed), np.uint8)           
+                FINAL_IMAGE = cv2.addWeighted(IMAGE, 1, filteredImage, fOpacity, 0)
 
-            filteredImage =  np.full((HEIGHT, WIDTH, CHANNELS), (iBlue, iGreen, iRed), np.uint8)           
-            FINAL_IMAGE = cv2.addWeighted(IMAGE, 1, filteredImage, fOpacity, 0)
-
-            #For Comparing the Images
-            SIDE_BY_SIDE = np.concatenate((FINAL_IMAGE, IMAGE), axis = 1)
-        except (NameError, ValueError):
+                #For Comparing the Images
+                SIDE_BY_SIDE = np.concatenate((FINAL_IMAGE, IMAGE), axis = 1)
+            else:
+                raise Exception
+        except (NameError, ValueError, Exception):
             messagebox.showerror("Error", "Please ensure all steps were followed and try again.")
 
 class ShowFilteredImage(tk.Frame):
@@ -154,11 +166,11 @@ class ShowFilteredImage(tk.Frame):
 
     def createWidgets(self):
 
-        self.EditSize = tk.Button(self, text = "Filtered Image", fg="black", command=self.onlyFilteredImage)
-        self.EditSize.pack(side="left")
+        self.bShowFiltered = tk.Button(self, text = "Filtered Image", fg="black", command=self.onlyFilteredImage)
+        self.bShowFiltered.pack(side="left")
 
-        self.EditSize = tk.Button(self, text = "Comparing Images", fg="black", command=self.comparedImages)
-        self.EditSize.pack(side="left")
+        self.bShowCompared = tk.Button(self, text = "Comparing Images", fg="black", command=self.comparedImages)
+        self.bShowCompared.pack(side="left")
 
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
         self.QUIT.pack(side="left")
@@ -187,10 +199,11 @@ class SaveFilteredImage(tk.Frame):
         tk.Frame.__init__(self, master)
         self.pack()
         self.createWidgets()
+        self.withdraw = master.withdraw
     
     def createWidgets(self):
-        self.EditSize = tk.Button(self, text = "Save", fg="black", command=self.saveFilteredImage)
-        self.EditSize.pack(side="left")
+        self.bFilter = tk.Button(self, text = "Save", fg="black", command=self.saveFilteredImage)
+        self.bFilter.pack(side="left")
 
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
         self.QUIT.pack(side="left")
@@ -208,6 +221,7 @@ class SaveFilteredImage(tk.Frame):
 
             saving.extend((IMAGE_PATH, iScale_percent, iRed, iGreen, iBlue, fOpacity, path))
             SUE.saveFileLocation()
+            self.withdraw()
         except(AttributeError, NameError):
             messagebox.showerror("Error", "Failed to save the image. Please try again.")
 
@@ -219,8 +233,8 @@ class InstructionsForUser(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
-        self.EditSize = tk.Button(self, text = "Instructions", fg="black", command=self.instructions)
-        self.EditSize.pack(side="left")
+        self.bIntruc = tk.Button(self, text = "Instructions", fg="black", command=self.instructions)
+        self.bIntruc.pack(side="left")
 
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
         self.QUIT.pack(side="left")
@@ -236,6 +250,79 @@ class InstructionsForUser(tk.Frame):
                               "The interface will remain open until the main \"Quit\" option is selected.")
         messagebox.showinfo("Instructions", instructionsString)
 
+class ViewHistory(tk.Frame):
+
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)
+        self.pack()
+        self.createWidgets()
+        self.geometry = master.geometry
+        self.resizable = master.resizable
+        self.withdraw = master.withdraw
+
+    def createWidgets(self):
+        self.bHistory = tk.Button(self, text = "View History", fg="black", command=self.viewHistory)
+        self.bHistory.pack(side="left")
+
+        self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
+        self.QUIT.pack(side="left")
+
+    def viewHistory(self):
+
+        try:
+            width = 500
+            height = 400
+            screen_width = self.winfo_screenwidth()
+            screen_height = self.winfo_screenheight()
+            x = (screen_width/2) - (width/2)
+            y = (screen_height/2) - (height/2)
+            self.geometry("%dx%d+%d+%d" % (width, height, x, y))
+            self.resizable(0, 0)
+
+            TableMargin = Frame(self, width=500)
+            TableMargin.pack(side=TOP)
+            scrollbarx = Scrollbar(TableMargin, orient=HORIZONTAL)
+            scrollbary = Scrollbar(TableMargin, orient=VERTICAL)
+            tree = ttk.Treeview(TableMargin, columns=("File Path", "Resize Paramter", "Red Filter Level", "Green Filter Level",
+                                                     "Blue Filter Level", "Opacity Scale", "Saved Image Path"), height=400, selectmode="extended", 
+                                                     yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+            scrollbary.config(command=tree.yview)
+            scrollbary.pack(side=RIGHT, fill=Y)
+            scrollbarx.config(command=tree.xview)
+            scrollbarx.pack(side=BOTTOM, fill=X)
+            tree.heading('File Path', text="File Path", anchor=W)
+            tree.heading('Resize Paramter', text="Resize Paramter", anchor=W)
+            tree.heading('Red Filter Level', text="Red Filter Level", anchor=W)
+            tree.heading('Green Filter Level', text="Green Filter Level", anchor=W)
+            tree.heading('Blue Filter Level', text="Blue Filter Level", anchor=W)
+            tree.heading('Opacity Scale', text="Opacity Scale", anchor=W)
+            tree.heading('Saved Image Path', text="Saved Image Path", anchor=W)
+            tree.column('#0', stretch=NO, minwidth=0, width=0)
+            tree.column('#1', stretch=NO, minwidth=0, width=350)
+            tree.column('#2', stretch=NO, minwidth=0, width=100)
+            tree.column('#3', stretch=NO, minwidth=0, width=100)
+            tree.column('#4', stretch=NO, minwidth=0, width=100)
+            tree.column('#5', stretch=NO, minwidth=0, width=100)
+            tree.column('#6', stretch=NO, minwidth=0, width=100)
+            tree.column('#7', stretch=NO, minwidth=0, width=350)
+            tree.pack()
+
+            with open(fName) as file:
+                reader = csv.DictReader(file, delimiter=',')
+                for row in reader:
+                    filePath = row['File Path']
+                    reParamter = row['Resize Paramter']
+                    rLevel = row['Red Filter Level']
+                    gLevel = row['Green Filter Level']
+                    bLevel = row['Blue Filter Level']
+                    oScale = row['Opacity Scale']
+                    savedPath = row['Saved Image Path']
+                    tree.insert("", 0, values=(filePath, reParamter, rLevel, gLevel, bLevel, oScale, savedPath))
+        
+        except FileNotFoundError:
+            self.withdraw()
+            messagebox.showerror("Error", "No history available. Please try again.")
+
             
 class MainMenuApp(tk.Frame):
 
@@ -246,7 +333,7 @@ class MainMenuApp(tk.Frame):
 
     def createWidgets(self):
 
-        self.bImageCapture = tk.Button(self, text="View Instructions", command = self.instructions_for_user)
+        self.bImageCapture = tk.Button(self, text="View Instructions", command = self.instructionsForUser)
         self.bImageCapture.pack(side="top")
 
         self.bImageCapture = tk.Button(self, text="[1] Select an Image", command = self.imagePathCapture)
@@ -264,8 +351,12 @@ class MainMenuApp(tk.Frame):
         self.bSave = tk.Button(self, text="[5] Save Filtered Image", command = self.saveFile)
         self.bSave.pack(side="top")
 
+        self.bSave = tk.Button(self, text="View Previous Filter Settings", command = self.viewHistory)
+        self.bSave.pack(side="top")
+
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command= self.master.destroy)
         self.QUIT.pack(side="bottom")
+
 
     def imagePathCapture(self):
         print("Getting Image Path...")
@@ -292,10 +383,15 @@ class MainMenuApp(tk.Frame):
         root6 = tk.Toplevel()
         buildApp5 = SaveFilteredImage(master = root6)
 
-    def instructions_for_user(self):
+    def instructionsForUser(self):
         print("Loading...")
         root7 = tk.Toplevel()
         buildApp6 = InstructionsForUser(master = root7)
+
+    def viewHistory(self):
+        print("Loading...")
+        root8 = tk.Toplevel()
+        buildApp7 = ViewHistory(master = root8)
 
 root = tk.Tk()
 app = MainMenuApp(master=root)
