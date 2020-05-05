@@ -18,6 +18,7 @@ class SaveUserEntries():
                 with open (FILENAME, "a", newline="") as file:
                     writer = csv.writer(file)
                     writer.writerow(history)
+                    HISTORY.clear()
                     break
             else:
                 with open('history.csv', 'w', newline='') as outcsv:
