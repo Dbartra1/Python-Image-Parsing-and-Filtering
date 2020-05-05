@@ -231,6 +231,7 @@ class InstructionsForUser(tk.Frame):
         tk.Frame.__init__(self, master)
         self.pack()
         self.createWidgets()
+        self.withdraw = master.withdraw
 
     def createWidgets(self):
         self.bIntruc = tk.Button(self, text = "Instructions", fg="black", command=self.instructions)
@@ -240,7 +241,7 @@ class InstructionsForUser(tk.Frame):
         self.QUIT.pack(side="left")
 
     def instructions(self):
-        self.destroy()
+        self.withdraw()
         instructionsString = ("To run the filtering program, note all options must be done in order. \n\n" + 
                               "The order is signified through numerical notations of 1 – 5. The steps are as follows:\n\n" +
                               "1) An image must be selected. \n" + 
