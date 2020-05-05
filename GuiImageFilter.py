@@ -12,7 +12,7 @@ from tkinter.filedialog import askopenfile
 from tkinter.filedialog import asksaveasfile
 from tkinter import messagebox
 from tkinter import Label, Text, Frame, Scrollbar
-from tkinter import END, TOP, HORIZONTAL, VERTICAL, BOTTOM, RIGHT, Y, X, W, NO
+from tkinter import END, TOP, HORIZONTAL, VERTICAL, BOTTOM, RIGHT, Y, X, W, SE, NW, NO, S
 
 
 from datalayer import SaveUserEntries as SUE
@@ -57,7 +57,7 @@ class ResizeImage(tk.Frame):
         self.image = None
 
     def createWidgets(self):
-        self.lImageSize = tk.Label(self, text="Image Size: ")
+        self.lImageSize = tk.Label(self, text="Image Size (1-200): ")
         self.lImageSize.pack(side="left") 
         self.eImageSize = tk.Entry(self)
         self.eImageSize.pack(side="left")
@@ -88,7 +88,7 @@ class ResizeImage(tk.Frame):
             else:
                 raise Exception
         except (NameError, ValueError, Exception):
-            messagebox.showerror("Error", "Either no image is selected or invalid input has been entered.")
+            messagebox.showerror("Error", "Either no image is selected or invalid input has been entered.\nFor more information see instructions")
 
 class FilterImage(tk.Frame):
 
@@ -98,22 +98,22 @@ class FilterImage(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
-        self.lRedRGB = tk.Label(self, text="Red RGB Value: ")
+        self.lRedRGB = tk.Label(self, text="Red RGB Value (0-255): ")
         self.lRedRGB.pack(side="left") 
         self.eRedRGB = tk.Entry(self)
         self.eRedRGB.pack(side="left")
 
-        self.lGreenRGB = tk.Label(self, text="Green RGB Value: ")
+        self.lGreenRGB = tk.Label(self, text="Green RGB Value (0-255): ")
         self.lGreenRGB.pack(side="left") 
         self.eGreenRGB = tk.Entry(self)
         self.eGreenRGB.pack(side="left")
 
-        self.lBlueRGB = tk.Label(self, text="Blue RGB Value: ")
+        self.lBlueRGB = tk.Label(self, text="Blue RGB Value (0-255): ")
         self.lBlueRGB.pack(side="left") 
         self.eBlueRGB = tk.Entry(self)
         self.eBlueRGB.pack(side="left")
 
-        self.lOpacity = tk.Label(self, text="Opacity RGB Value: ")
+        self.lOpacity = tk.Label(self, text="Opacity RGB Value (.001-1.0): ")
         self.lOpacity.pack(side="left") 
         self.eOpacity = tk.Entry(self)
         self.eOpacity.pack(side="left")
@@ -155,7 +155,7 @@ class FilterImage(tk.Frame):
             else:
                 raise Exception
         except (NameError, ValueError, Exception):
-            messagebox.showerror("Error", "Please ensure all steps were followed and try again.")
+            messagebox.showerror("Error", "Please ensure all steps were followed and try again.\nFor more information see instructions")
 
 class ShowFilteredImage(tk.Frame):
     
@@ -245,7 +245,8 @@ class InstructionsForUser(tk.Frame):
         instructionsString = ("To run the filtering program, note all options must be done in order. \n\n" + 
                               "The order is signified through numerical notations of 1 – 5. The steps are as follows:\n\n" +
                               "1) An image must be selected. \n" + 
-                              "2) The image must be resized.\n3) Filter parameters must be entered. \n" +
+                              "2) The image must be resized between a value of 1 and 200.\n3) Filter parameters must be entered as follows:\n" + 
+                              "\t3.1)RGB values must be 0 and 255 and Opacity value \t\t      between .001 and 1.0. \n" +
                               "4) The filtered image can now be opened.\n" + "5) The filtered image can now be saved.\n\n" +
                               "NOTE: Step 5 can wait till after the desired image filter and size have been selected. Backtracking is possible. " + 
                               "The interface will remain open until the main \"Quit\" option is selected.")
