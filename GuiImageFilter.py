@@ -36,15 +36,20 @@ class GetFileLocation(tk.Frame):
         self.QUIT.pack(side="left")
     
     def getImagePath(self):
+        #Initializing global value
         global IMAGE_PATH
+        #A list that contains the acceptable image types. Making the preceding code easier to read
         files = [('jpg files', '*.jpg'),  
              ('png files', '*.png'), 
              ('jpeg files', '*.jpeg')] 
         try:
+            #using tkinters askopenfile to grab all information relating to file and then grabing the "name" or the filepath of the file
             file = askopenfile(mode ='r', filetypes = files)
             IMAGE_PATH = file.name
             self.withdraw()
         
+        #displaying a error message box that displays a simple error message. Because acceptable file formats are defined 
+        #if a corrupted image is entered it will be picked up at the resizing portion
         except AttributeError:
             messagebox.showerror("Error", "No File Selected")
 
@@ -76,6 +81,7 @@ class ResizeImage(tk.Frame):
         global CHANNELS
         global iScale_percent
 
+        #The following takes the entered value which is then formated into an integar and then applied to the height and width variables
         try:
             SCALE_PERCENT = self.eImageSize.get()
             iScale_percent = int(SCALE_PERCENT)
@@ -86,9 +92,10 @@ class ResizeImage(tk.Frame):
                 HEIGHT = int(IMAGE.shape[0] * iScale_percent / 100)
                 IMAGE = cv2.resize(IMAGE, (WIDTH, HEIGHT), interpolation = cv2.INTER_AREA)
             else:
+                #push erros to the message box
                 raise Exception
         except (NameError, ValueError, Exception):
-            messagebox.showerror("Error", "Either no image is selected or invalid input has been entered.\nFor more information see instructions")
+            messagebox.showerror("Error", "Either no image is selected or invalid input has been entered.\n\nFor more information see instructions")
 
 class FilterImage(tk.Frame):
 
@@ -134,7 +141,7 @@ class FilterImage(tk.Frame):
         global iBlue
         global fOpacity
 
-        #Gui produces strings, taking the string values and making them correct variable types
+        #Entry produces string objects, taking the string objects and making them correct variable types is required
         try:
             RED = self.eRedRGB.get()
             iRed = int(RED)
@@ -145,6 +152,7 @@ class FilterImage(tk.Frame):
             OPACITY = self.eOpacity.get()
             fOpacity = float(OPACITY)
 
+            #validating integer values, rasing exceptions invalid 
             if iRed >= 0 and iGreen >= 0 and iBlue >= 0 and fOpacity >= .001 and iRed <= 255 and iGreen <= 255 and iBlue <= 255 and fOpacity <= 1.0:
                 #Buidlng and Adding the filter
                 filteredImage =  np.full((HEIGHT, WIDTH, CHANNELS), (iBlue, iGreen, iRed), np.uint8)           
@@ -155,7 +163,7 @@ class FilterImage(tk.Frame):
             else:
                 raise Exception
         except (NameError, ValueError, Exception):
-            messagebox.showerror("Error", "Please ensure all steps were followed and try again.\nFor more information see instructions")
+            messagebox.showerror("Error", "Please ensure all steps were followed and try again.\n\nFor more information see instructions")
 
 class ShowFilteredImage(tk.Frame):
     
@@ -176,6 +184,8 @@ class ShowFilteredImage(tk.Frame):
         self.QUIT.pack(side="left")
 
     def onlyFilteredImage(self):
+        #The following is the required code to produce the desired output for either a single filtered image or a comparison of two images
+        #The use of try catch blocks (try-except) ensures invalid or any errors are caught 
         try:
             filteredImageWinName = "Filtered Image"
             cv2.imshow(filteredImageWinName,  FINAL_IMAGE)                                                       
@@ -191,7 +201,7 @@ class ShowFilteredImage(tk.Frame):
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         except NameError:
-            messagebox.showerror("Error", "Looks like you skipped a step?")
+            messagebox.showerror("Error","Please ensure all steps were followed and try again.\n\nFor more information see instructions")
 
 class SaveFilteredImage(tk.Frame):
 
@@ -209,9 +219,11 @@ class SaveFilteredImage(tk.Frame):
         self.QUIT.pack(side="left")
 
     def saveFilteredImage(self):
+        #saving as the same file type options presented earlier for acceptable file types
         files = [('jpg files', '*.jpg'),  
              ('png files', '*.png'), 
              ('jpeg files', '*.jpeg')]
+        #A try block where a gui is presented asking for the user to select a file location to save the filtered image.
         try:
             file = asksaveasfile(filetypes = files, defaultextension = files)
             path = file.name
@@ -222,6 +234,7 @@ class SaveFilteredImage(tk.Frame):
             saving.extend((IMAGE_PATH, iScale_percent, iRed, iGreen, iBlue, fOpacity, path))
             SUE.saveFileLocation()
             self.withdraw()
+        #Catching possible excpetion types and displaying an error
         except(AttributeError, NameError):
             messagebox.showerror("Error", "Failed to save image. Please try again.")
 
@@ -240,6 +253,7 @@ class InstructionsForUser(tk.Frame):
         self.QUIT = tk.Button(self, text="QUIT", fg="red", command=self.master.destroy)
         self.QUIT.pack(side="left")
 
+    #generation of a instruction button and the follow are those instructions
     def instructions(self):
         self.withdraw()
         instructionsString = ("To run the filtering program, note all options must be done in order. \n\n" + 
@@ -271,6 +285,7 @@ class ViewHistory(tk.Frame):
 
     def viewHistory(self):
 
+        #The use of tkinters geometry allows for the tree object to be used to create a table like format within a tkinter window.
         try:
             width = 500
             height = 400
@@ -283,15 +298,15 @@ class ViewHistory(tk.Frame):
 
             TableMargin = Frame(self, width=500)
             TableMargin.pack(side=TOP)
-            scrollbarx = Scrollbar(TableMargin, orient=HORIZONTAL)
-            scrollbary = Scrollbar(TableMargin, orient=VERTICAL)
+            scrollBarX = Scrollbar(TableMargin, orient=HORIZONTAL)
+            scrollBarY = Scrollbar(TableMargin, orient=VERTICAL)
             tree = ttk.Treeview(TableMargin, columns=("File Path", "Resize Paramter", "Red Filter Level", "Green Filter Level",
                                                      "Blue Filter Level", "Opacity Scale", "Saved Image Path"), height=400, selectmode="extended", 
-                                                     yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
-            scrollbary.config(command=tree.yview)
-            scrollbary.pack(side=RIGHT, fill=Y)
-            scrollbarx.config(command=tree.xview)
-            scrollbarx.pack(side=BOTTOM, fill=X)
+                                                     yscrollcommand=scrollBarY.set, xscrollcommand=scrollBarX.set)
+            scrollBarY.config(command=tree.yview)
+            scrollBarY.pack(side=RIGHT, fill=Y)
+            scrollBarX.config(command=tree.xview)
+            scrollBarX.pack(side=BOTTOM, fill=X)
             tree.heading('File Path', text="File Path", anchor=W)
             tree.heading('Resize Paramter', text="Resize Paramter", anchor=W)
             tree.heading('Red Filter Level', text="Red Filter Level", anchor=W)
